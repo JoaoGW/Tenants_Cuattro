@@ -84,7 +84,7 @@ export const updateAtendimentoStatus = onCall(async (request) => {
     throw new HttpsError("invalid-argument", "O valor de status deve ser novo, pendente ou resolvido");
   }
 
-  // Atualiza o doc somente no campo necessário
+  // Captura o doc correto depois atualiza o doc somente no campo necessário
   const doc = await db
     .collection("atendimentos")
     .doc(atendimentoId)
