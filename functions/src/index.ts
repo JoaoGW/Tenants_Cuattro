@@ -61,3 +61,43 @@ export const createAtendimento = onCall(async (request) => {
 
   return { id: doc.id };
 });
+
+/**
+ * Atualiza um registro de atendimento para um tenant.
+ * Implementação mínima — sem validação de schema.
+ */
+export const updateAtendimentoStatus = onCall(async (request) => {
+  const { atendimentoId, tenantId, novoStatus } = request.data ?? {};
+
+  // Faz a validação do ID do atendimento
+  if (!atendimentoId || typeof atendimentoId !== "string") {
+    throw new HttpsError("invalid-argument", "atendimentoId é obrigatório.");
+  }
+
+  // Faz a validação do ID do Tenant
+  if (!tenantId || typeof tenantId !== "string") {
+    throw new HttpsError("invalid-argument", "tenantId é obrigatório.");
+  }
+
+  // Faz a validação da atualização do status
+  if (novoStatus !== "novo" && novoStatus !== "pendente" && novoStatus !== "resolvido") {
+    throw new HttpsError("invalid-argument", "O valor de status deve ser novo, pendente ou resolvido");
+  }
+
+  // Atualiza o doc somente no campo necessário
+  const doc = await db
+    .collection("atendimentos")
+    .doc(atendimentoId)
+    .get();
+
+  if (!doc.exists || doc.data()?.tenantId !== tenantId) {
+    throw new HttpsError(
+      "not-found",
+      "O documento não foi encontrado ou o tenantId não corresponde."
+    );
+  }
+
+  await doc.ref.update({ status: novoStatus });
+
+  return { ok: true };
+});
