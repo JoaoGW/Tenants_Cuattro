@@ -38,10 +38,16 @@ export const listAtendimentos = onCall(async (request) => {
  * Implementação mínima — sem validação de schema.
  */
 export const createAtendimento = onCall(async (request) => {
-  const { tenantId, transcricao, duracaoSegundos } = request.data ?? {};
+  const { tenantId, transcricao, duracaoSegundos, prioridade } = request.data ?? {};
 
+  // Faz a validação do ID do Tenant
   if (!tenantId || typeof tenantId !== "string") {
     throw new HttpsError("invalid-argument", "tenantId é obrigatório.");
+  }
+
+  // Faz a validação da prioridade recebida
+  if (prioridade !== "baixa" && prioridade !== "media" && prioridade !== "alta" && prioridade !== undefined) {
+    throw new HttpsError("invalid-argument", "O valor de prioridade deve ser baixa, media ou alta");
   }
 
   const doc = await db.collection("atendimentos").add({
@@ -49,6 +55,7 @@ export const createAtendimento = onCall(async (request) => {
     transcricao: transcricao ?? "",
     duracaoSegundos: duracaoSegundos ?? 0,
     status: "novo",
+    prioridade: prioridade ?? "media",
     criadoEm: new Date().toISOString(),
   });
 
